@@ -1,0 +1,126 @@
+name: GitHub Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing version tag to release (for example, v1.2.0)'
+        required: true
+        type: string
+      publish:
+        description: 'Publish the draft as a prerelease after validation'
+        default: false
+        required: true
+        type: boolean
+
+# Tags create reviewable drafts. Publishing is an explicit manual choice.
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
+      commit: ${{ steps.version.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.9'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Validate the exact version tag
+        id: version
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          const tag = process.env.RELEASE_TAG;
+          if (!/^v[0-9]+(?:\.[0-9]+){0,3}$/.test(tag)) throw Error('An existing vVERSION tag is required.');
+          const versions = ['package.json', 'extension/manifest.json', 'extension-helper/manifest.json']
+            .map(file => JSON.parse(fs.readFileSync(file, 'utf8')).version);
+          if (versions.some(version => version !== versions[0]) || tag !== `v${versions[0]}`)
+            throw Error('The tag, package version, and both extension versions must match.');
+          const commit = execFileSync('git', ['rev-parse', '--verify', `refs/tags/${tag}^{commit}`], {encoding: 'utf8'}).trim();
+          const head = execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim();
+          if (head !== commit) throw Error('The checked out commit does not match the release tag.');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `tag=${tag}\nversion=${versions[0]}\ncommit=${commit}\n`);
+          NODE
+      - name: Install test and archive tools
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg zip unzip
+      - name: Python tests
+        run: python -m unittest discover -s tests -p 'test_*.py'
+      - name: Extension and release archive tests
+        run: npm test
+      - name: Build release assets
+        run: npm run package:release
+      - name: Verify release checksums
+        working-directory: dist/release
+        run: sha256sum --check SHA256SUMS
+
+  release:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Use the validated commit, even if a tag moves while tests are running.
+          ref: ${{ needs.validate.outputs.commit }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Install archive tools
+        run: sudo apt-get update && sudo apt-get install -y zip unzip
+      - name: Recheck the tag and build the validated assets
+        env:
+          RELEASE_TAG: ${{ needs.validate.outputs.tag }}
+          RELEASE_COMMIT: ${{ needs.validate.outputs.commit }}
+        run: |
+          test "$(git rev-parse --verify "refs/tags/$RELEASE_TAG^{commit}")" = "$RELEASE_COMMIT"
+          npm run package:release
+          cd dist/release
+          sha256sum --check SHA256SUMS
+      - name: Create or update a draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.validate.outputs.tag }}
+          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+          RELEASE_COMMIT: ${{ needs.validate.outputs.commit }}
+          PUBLISH: ${{ github.event_name == 'workflow_dispatch' && inputs.publish && 'true' || 'false' }}
+        run: |
+          # Existing public releases are immutable here; reruns may update a draft.
+          if gh release view "$RELEASE_TAG" --json isDraft --jq '.isDraft' > release-draft.txt; then
+            test "$(cat release-draft.txt)" = true || { echo 'This release is already published; refusing to overwrite it.'; exit 1; }
+            gh release edit "$RELEASE_TAG" --title "Panopto Downloader $RELEASE_VERSION" --notes-file dist/release/release-notes.md
+          else
+            gh release create "$RELEASE_TAG" --verify-tag --target "$RELEASE_COMMIT" --draft --title "Panopto Downloader $RELEASE_VERSION" --notes-file dist/release/release-notes.md
+          fi
+          gh release upload "$RELEASE_TAG" \
+            "dist/release/panopto-$RELEASE_VERSION-chrome-standalone.zip" \
+            "dist/release/panopto-$RELEASE_VERSION-chrome-with-helper.zip" \
+            "dist/release/panopto-$RELEASE_VERSION-safari-standalone-source.zip" \
+            "dist/release/panopto-$RELEASE_VERSION-safari-with-helper-source.zip" \
+            dist/release/INSTALL.md dist/release/SHA256SUMS --clobber
+          if [ "$PUBLISH" = true ]; then
+            gh release edit "$RELEASE_TAG" --draft=false --prerelease
+          fi

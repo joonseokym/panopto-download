@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Panopto 다운로드 · 배속",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "로그인한 Panopto 영상과 폴더를 브라우저에서 다운로드하고 재생 속도를 조절합니다.",
   "permissions": [
     "storage",

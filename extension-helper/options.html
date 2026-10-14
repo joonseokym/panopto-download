@@ -1,0 +1,8 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Panopto 다운로드 설정</title><link rel="stylesheet" href="ui.css"></head><body class="options"><main>
+<header><span class="brand" aria-hidden="true">P</span><div><h1>연결 · 저장 위치 설정</h1><p>Panopto 다운로드 확장</p></div></header>
+<p class="note">동영상 저장에는 로컬 도우미가 필요합니다. <strong>start.command</strong>를 실행한 다음, 도우미 화면의 연결 토큰을 아래에 붙여 넣으세요.</p>
+<form id="form"><div class="field"><label for="token">로컬 도우미 연결 토큰</label><div class="tokenrow"><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="도우미 화면에서 토큰 복사" required><button id="reveal" type="button">보기</button></div><p class="hint">토큰은 이 확장 기능의 로컬 저장소에만 보관됩니다.</p></div>
+<div class="field"><label for="output">다운로드 위치</label><div class="pathrow"><input id="output" type="text" value="~/Downloads" spellcheck="false" placeholder="~/Downloads"><button id="default" type="button">기본값</button></div><p class="hint">Mac의 폴더 경로를 입력하세요. 예: ~/Downloads 또는 /Volumes/External/Lectures<br>기본값은 사용자의 Downloads 폴더입니다. 폴더가 없으면 도우미가 만듭니다. 변경한 위치는 아직 도우미에 제출하지 않은 대기 영상부터 적용됩니다. 이미 제출한 작업은 원래 위치에 저장됩니다.</p></div>
+<div class="actions"><button type="submit" class="primary">저장 · 연결</button><button id="test" type="button">연결 확인</button></div></form>
+<p id="status" class="status" role="status" aria-live="polite"></p><nav class="links"><a id="dashboard" target="_blank" rel="noopener">로컬 도우미 열기 ↗</a><span>127.0.0.1:8765</span></nav>
+</main><script src="common.js"></script><script src="options.js"></script></body></html>
