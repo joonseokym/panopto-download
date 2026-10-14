@@ -42,7 +42,7 @@ async function copySource(relative, destination) {
   await copyFile(source, destination);
 }
 
-async function addHelper(directory, version, releaseBaseUrl) {
+export async function addHelper(directory, version, releaseBaseUrl) {
   const destination = path.join(directory, 'helper');
   await mkdir(destination, {recursive: true});
   for (const relative of helperFiles) await copySource(relative, path.join(destination, relative));

@@ -59,7 +59,7 @@ bash scripts/build-safari.sh --variant with-helper YOUR_TEAM_ID
 
 확장 전용판 앱은 `dist/safari/Panopto Downloader.app`, 도우미 포함판 앱은 `dist/with-helper/safari/Panopto Downloader Helper.app`에 생성됩니다. 두 앱은 이름과 번들 식별자가 다릅니다. 각 디렉터리의 `panopto-downloader-macos.zip`으로 앱을 옮길 수 있습니다. ZIP을 풀어 앱을 Applications에 넣고 실행한 뒤, Safari 설정의 **확장 프로그램**에서 활성화하고 사용하는 Panopto 사이트 접근을 허용합니다. 설치·업데이트 후 열려 있던 Panopto 페이지를 새로고침합니다.
 
-서명하지 않은 빌드는 개발용이며 일반 설치에는 개발 서명이 필요합니다. App Store 배포·공증은 이 저장소에 포함되지 않습니다. Apple 계정, 인증서, 팀 ID는 소스에 저장하지 않습니다.
+서명하지 않은 빌드는 개발용이며 일반 설치에는 개발 서명이 필요합니다. GitHub에 배포할 앱은 `scripts/distribute-safari.sh`로 두 버전의 Developer ID 서명·Apple 공증·티켓 첨부와 최종 ZIP 검증을 진행합니다. 배포용 인증서와 공증용 키체인 프로필을 먼저 준비해야 하며, [서명·공증 안내](docs/safari-signing.md)에 절차가 있습니다. Apple 계정, 인증서, 팀 ID는 소스에 저장하지 않습니다.
 
 지원되는 Safari에서는 개발자 설정의 **Add Temporary Extension…**으로 `dist/safari/extension/` 또는 Safari용 확장 ZIP을 임시로 로드할 수도 있습니다. 개발자 설정이 보이지 않으면 Safari 고급 설정에서 웹 개발자 기능을 표시합니다. 임시 설치의 유지 기간과 사용 가능 여부는 Safari 버전에 따릅니다.
 
