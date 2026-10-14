@@ -1,0 +1,23 @@
+name: Tests
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.9'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Python tests
+        run: python -m unittest discover -s tests -p 'test_*.py'
+      - name: Extension tests
+        run: npm test
+      - name: Package extension
+        run: npm run package

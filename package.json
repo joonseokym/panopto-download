@@ -1,0 +1,11 @@
+{
+  "name": "panopto-download",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Safari and Chrome Panopto downloads, folder batches and playback speed controls",
+  "scripts": {
+    "test": "node --test tests/*.cjs",
+    "package": "node scripts/package.mjs"
+  },
+  "engines": {"node": ">=20"}
+}

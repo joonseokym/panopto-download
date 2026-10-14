@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panopto 다운로드</title>
+  <style>
+    :root{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;color:#182436;background:#f4f6f9;line-height:1.6;color-scheme:light}
+    *{box-sizing:border-box}body{margin:0}main{max-width:840px;margin:56px auto;padding:0 24px}h1{font-size:30px;letter-spacing:-1px;line-height:1.3;margin:0 0 12px}h2{font-size:20px;letter-spacing:-.5px;margin:0 0 16px}p{margin:8px 0 20px}.eyebrow{font-size:12px;letter-spacing:1.3px;color:#53708e;font-weight:700;margin-bottom:12px}.muted{color:#64748b;font-size:14px}section,.job{background:white;border:1px solid #dfe5ed;border-radius:16px;padding:24px;margin-top:22px}.bookmark{display:inline-block;background:#105bd8;border-radius:10px;color:white;text-decoration:none;padding:12px 20px;font-weight:600}.bookmark:hover{background:#084ab7}.steps{padding-left:22px;margin:20px 0 8px}.steps li{padding:4px 0}button{font:inherit;cursor:pointer;border:1px solid #ccd5e2;border-radius:8px;background:white;padding:6px 12px;color:#263950}button:hover{background:#f3f6fa}button:disabled{opacity:.6;cursor:default}.row{display:flex;align-items:center;justify-content:space-between;gap:16px}.badge{font-size:13px;border-radius:20px;background:#eef3fa;color:#31577f;padding:3px 10px;white-space:nowrap}.done{background:#e8f6ee;color:#207146}.failed{background:#fff0ef;color:#af352b}.job{margin-top:12px;padding:20px}.job h3{font-size:17px;margin:0;overflow-wrap:anywhere}.job p{margin:10px 0 0;font-size:14px}progress{width:100%;height:9px;accent-color:#105bd8;display:block;margin:16px 0 6px}.error{color:#af352b}.files{padding-left:20px;margin-bottom:0;overflow-wrap:anywhere}.empty{padding:24px 0;color:#64748b}.section-head{margin-top:38px}.connection{color:#207146;font-size:13px}.connection.error{color:#af352b}details{margin-top:16px}summary{cursor:pointer;font-size:14px;color:#536781}textarea{display:block;width:100%;height:90px;margin-top:12px;border:1px solid #ccd5e2;border-radius:8px;padding:10px;font-size:12px}code{font-size:.9em;background:#eef2f7;padding:2px 5px;border-radius:4px}#waiting{background:#edf4ff;border:1px solid #c6dbff;padding:14px 20px;border-radius:12px;display:none}footer{margin:28px 0 44px}.path{overflow-wrap:anywhere}@media(max-width:550px){main{margin:30px auto;padding:0 18px}section{padding:20px}.row{align-items:flex-start}h1{font-size:26px}}
+  </style>
+  <style>label{display:block;font-weight:600;margin:14px 0 6px}input{font:inherit;width:100%;border:1px solid #ccd5e2;border-radius:8px;padding:9px 12px}.settings-row{display:flex;gap:10px;align-items:center}.settings-row input{min-width:0}.settings-row button{white-space:nowrap}#settings-status{margin:10px 0 0;font-size:14px}</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">SAFARI · CHROME · PANOPTO</div>
+  <h1>강의 영상을 내 Mac에 저장</h1>
+  <p class="muted">확장 프로그램이나 즐겨찾기에서 실행한 다운로드를 관리합니다.</p>
+  <div id="waiting" role="status">Safari에서 영상 정보를 가져오는 중입니다. 잠시 기다려 주세요.</div>
+  <section>
+    <h2>확장 프로그램 연결 · 저장 위치</h2>
+    <p class="muted">연결 코드를 복사해 확장 프로그램 설정에 붙여 넣으세요. 코드는 이 Mac에서만 사용하며 다른 사람에게 공유하지 마세요.</p>
+    <label for="connection-token">확장 프로그램 연결 코드</label>
+    <div class="settings-row"><input id="connection-token" type="password" readonly autocomplete="off" value="__TOKEN__"><button id="copy-token" type="button">복사</button></div>
+    <label for="output-directory">다운로드 폴더</label>
+    <div class="settings-row"><input id="output-directory" type="text" value="__OUTPUT_DIR__" placeholder="~/Downloads" spellcheck="false"><button id="save-directory" type="button">저장</button></div>
+    <p id="settings-status" role="status" class="muted">기본값은 ~/Downloads입니다. 변경한 위치는 새 다운로드부터 적용됩니다.</p>
+  </section>
+  <section id="setup">
+    <h2>즐겨찾기로 사용하기</h2>
+    <a id="bookmarklet" class="bookmark" href="__BOOKMARKLET__">↓ Panopto 다운로드</a>
+    <ol class="steps">
+      <li>위 버튼을 Safari의 즐겨찾기 막대로 드래그합니다.</li>
+      <li>Panopto 목록에서 저장할 영상을 엽니다.</li>
+      <li>즐겨찾기의 <strong>Panopto 다운로드</strong>를 누릅니다.</li>
+    </ol>
+    <p class="muted">즐겨찾기 막대가 안 보이면 Safari 메뉴의 보기 → 즐겨찾기 막대 보기를 선택하세요. 다운로드하는 동안 실행한 터미널을 열어 두세요.</p>
+    <details><summary>즐겨찾기를 직접 편집해서 등록하기</summary><p class="muted">아무 페이지나 즐겨찾기에 추가한 다음, 주소를 아래 내용으로 바꾸고 이름을 「Panopto 다운로드」로 지정하세요.</p><textarea id="bookmarklet-source" readonly aria-label="즐겨찾기 실행 코드"></textarea></details>
+  </section>
+  <div class="row section-head"><h2 style="margin:0">다운로드</h2><span id="connection" class="connection" role="status">연결 확인 중</span></div>
+  <div id="jobs" aria-live="polite"><p class="empty">아직 다운로드한 영상이 없습니다.</p></div>
+  <footer class="muted">새 다운로드 저장 위치: <code id="output-path" class="path">__OUTPUT_DIR__</code><br>여러 화면이 있는 강의는 화면별 MP4로 저장됩니다. 파일은 Finder에서 열 수 있습니다.</footer>
+</main>
+<script>
+  const token = '__TOKEN__';
+  const jobsNode = document.getElementById('jobs');
+  const stateNode = document.getElementById('connection');
+  const waitingNode = document.getElementById('waiting');
+  const hashParams = new URLSearchParams(location.hash.slice(1));
+  const openerOrigin = hashParams.get('origin') || 'https://kaist.ap.panopto.com';
+  const isPanoptoOrigin = value => {try{const url=new URL(value);return url.protocol==='https:'&&url.origin===value&&!url.port&&url.hostname.endsWith('.panopto.com');}catch{return false;}};
+  if (hashParams.has('waiting')) waitingNode.style.display = 'block';
+  let accepting = false;
+  window.addEventListener('message', async event => {
+    if (!isPanoptoOrigin(openerOrigin) || event.origin !== openerOrigin || event.source !== window.opener ||
+        event.data?.type !== 'panopto-download' || event.data.token !== token || accepting) return;
+    accepting = true;
+    try {
+      const response = await fetch('/download', {
+        method: 'POST',
+        body: new URLSearchParams({token, payload: JSON.stringify(event.data.payload)}),
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || '다운로드 요청을 처리하지 못했습니다.');
+      }
+      history.replaceState(null, '', response.url);
+      waitingNode.style.display = 'none';
+      await poll();
+    } catch (error) {
+      waitingNode.style.display = 'block';
+      waitingNode.className = 'error';
+      waitingNode.textContent = `다운로드를 시작하지 못했습니다. ${error.message || '다시 실행해 주세요.'}`;
+    }
+  });
+  if (hashParams.has('waiting') && window.opener && isPanoptoOrigin(openerOrigin)) {
+    window.opener.postMessage({type: 'panopto-download-ready'}, openerOrigin);
+  }
+  const settingsStatus = document.getElementById('settings-status');
+  document.getElementById('copy-token').addEventListener('click', async () => {
+    try {await navigator.clipboard.writeText(token);settingsStatus.textContent='연결 코드를 복사했습니다. 확장 프로그램 설정에 붙여 넣으세요.';}
+    catch {const field=document.getElementById('connection-token');field.type='text';field.select();settingsStatus.textContent='연결 코드를 선택했습니다. 복사해서 확장 프로그램 설정에 붙여 넣으세요.';}
+  });
+  document.getElementById('save-directory').addEventListener('click', async () => {
+    const button=document.getElementById('save-directory');button.disabled=true;
+    try {
+      const response=await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json','X-Panopto-Token':token},body:JSON.stringify({outputDir:document.getElementById('output-directory').value})});
+      const data=await response.json();if(!response.ok)throw new Error(data.error||'저장 위치 변경에 실패했습니다.');
+      document.getElementById('output-directory').value=data.outputDir;
+      document.getElementById('output-path').textContent=data.outputDir;
+      settingsStatus.textContent='저장 위치를 변경했습니다. 새 다운로드부터 적용됩니다.';
+    } catch(error){settingsStatus.textContent=error.message||'저장 위치 변경에 실패했습니다.';}
+    finally{button.disabled=false;}
+  });
+  document.getElementById('bookmarklet-source').value = document.getElementById('bookmarklet').href;
+  document.getElementById('bookmarklet').addEventListener('click', event => {
+    event.preventDefault();
+    alert('이 버튼을 Safari의 즐겨찾기 막대로 드래그해 주세요. 등록한 즐겨찾기는 Panopto 영상 페이지에서 실행합니다.');
+  });
+  const statuses = {queued:'대기 중',downloading:'다운로드 중',processing:'MP4 생성 중',completed:'완료',failed:'실패',cancelled:'취소됨',cancelling:'취소 중'};
+  const el = (tag, value, className) => {const node=document.createElement(tag);if(value!==undefined)node.textContent=value;if(className)node.className=className;return node;};
+  const sizeLabel = bytes => bytes >= 1073741824 ? `${(bytes/1073741824).toFixed(2)} GB` : `${(bytes/1048576).toFixed(1)} MB`;
+  function render(jobs) {
+    jobsNode.replaceChildren();
+    if (!jobs.length) {jobsNode.append(el('p','아직 다운로드한 영상이 없습니다.','empty'));return;}
+    for (const job of [...jobs].reverse()) {
+      const card=el('article',undefined,'job');const row=el('div',undefined,'row');
+      row.append(el('h3',job.title));row.append(el('span',statuses[job.status]||job.status,`badge ${job.status==='completed'?'done':job.status==='failed'?'failed':''}`));card.append(row);
+      if (['queued','downloading','processing','cancelling'].includes(job.status)) {
+        const progress=el('progress');progress.max=100;if(Number.isFinite(job.progress))progress.value=Math.max(0,Math.min(100,job.progress));progress.setAttribute('aria-label','다운로드 진행률');card.append(progress);
+        const actions=el('div',undefined,'row');actions.append(el('span',Number.isFinite(job.progress)?`${Math.floor(job.progress)}%`:'진행 중','muted'));
+        const cancel=el('button','취소');cancel.disabled=job.status==='cancelling';cancel.addEventListener('click',async()=>{cancel.disabled=true;try{const r=await fetch(`/api/jobs/${encodeURIComponent(job.id)}/cancel`,{method:'POST',headers:{'X-Panopto-Token':token}});if(!r.ok)throw new Error('취소 실패');await poll();}catch(e){cancel.disabled=false;stateNode.textContent='취소 요청에 실패했습니다. 다시 시도해 주세요.';stateNode.className='connection error';}});actions.append(cancel);card.append(actions);
+      }
+      if(job.error)card.append(el('p',job.error,'error'));
+      if(job.files?.length){const files=el('ul',undefined,'files');for(const file of job.files)files.append(el('li',`${file.name} · ${sizeLabel(file.size)}`));card.append(files);}
+      jobsNode.append(card);
+    }
+  }
+  async function poll(){
+    try{const response=await fetch('/api/jobs',{headers:{'X-Panopto-Token':token},cache:'no-store',signal:AbortSignal.timeout(8000)});if(!response.ok)throw new Error();const data=await response.json();render(data.jobs);stateNode.textContent='이 Mac에 연결됨';stateNode.className='connection';}
+    catch(error){stateNode.textContent='서버 연결 끊김 · start.command를 실행해 주세요';stateNode.className='connection error';}
+  }
+  async function tick(){await poll();setTimeout(tick,2000);}tick();
+</script>
+</body>
+</html>
