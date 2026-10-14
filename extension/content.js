@@ -12,10 +12,9 @@
     header{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;font-weight:650;background:#1e2d40}button,select{font:inherit;cursor:pointer}button{border:0;border-radius:8px;color:inherit;background:#2c415b;padding:8px 11px}button:hover{background:#395473}button:disabled{opacity:.55;cursor:wait}.toggle{background:transparent;padding:0 4px;font-size:18px}
     .body{padding:12px}.actions{display:flex;gap:7px}.primary{background:#88d9bf;color:#102c24;font-weight:650;flex:1}.primary:hover{background:#a5e6d0}.speed{display:flex;align-items:center;justify-content:space-between;margin-top:11px}select{background:#22354b;color:#f4f8ff;border:1px solid #4a627e;border-radius:7px;padding:4px 7px}p{margin:9px 0 0;color:#aebed2;font-size:12px;overflow-wrap:anywhere}.error{color:#ffc6b8}a{color:#a5e6d0;text-decoration:none}.links{display:flex;gap:13px;margin-top:9px;font-size:12px}[hidden]{display:none!important}
     :host([hidden]){display:none!important}@media(max-width:480px){:host{right:8px;bottom:8px}section{width:270px}}
-    </style><section aria-label="Panopto 다운로드 확장"><header><span>Panopto 다운로드</span><button class="toggle" aria-label="도구 접기" aria-expanded="true">−</button></header><div class="body"><div class="actions"><button class="primary" id="download"></button></div><label class="speed">재생 속도<select aria-label="재생 속도"></select></label><p id="status" role="status">로컬 도우미 연결을 확인하고 있습니다.</p><div class="links"><a id="dashboard" target="_blank" rel="noopener">다운로드 현황 ↗</a><a id="settings" href="#">설정</a></div></div></section>`;
+    </style><section aria-label="Panopto 다운로드 확장"><header><span>Panopto 다운로드</span><button class="toggle" aria-label="도구 접기" aria-expanded="true">−</button></header><div class="body"><div class="actions"><button class="primary" id="download"></button></div><label class="speed">재생 속도<select aria-label="재생 속도"></select></label><p id="status" role="status">브라우저에서 바로 다운로드합니다.</p><div class="links"><a id="downloads" href="#">다운로드 현황 ↗</a><a id="settings" href="#">설정</a></div></div></section>`;
   document.documentElement.appendChild(host);
   const $ = selector => shadow.querySelector(selector);
-  $('#dashboard').href = E.HELPER;
   const select = $('select');
   for (const value of E.RATES) { const option = document.createElement('option'); option.value = value; option.textContent = `${value}배`; select.appendChild(option); }
   function applyAll() {
@@ -80,25 +79,24 @@
     starting = true; updatePage(); status(currentPage.kind === 'folder' ? '폴더 전체 목록을 확인하고 있습니다…' : '다운로드 준비 중…');
     try {
       const result = await send(currentPage.kind === 'folder' ? 'startFolder' : 'startVideo');
-      status(result.duplicate ? '이미 다운로드 대기열에 있는 영상입니다.' : `${result.count}개 영상을 대기열에 추가했습니다. 강의 탭은 열어 두세요.`);
+      status(result.duplicate ? '이미 다운로드 대기열에 있는 영상입니다.' : `${result.count}개 영상을 대기열에 추가했습니다. 강의 탭과 다운로드 작업 탭을 열어 두세요.`);
     } catch (error) { status(E.safeError(error), true); }
     finally { starting = false; updatePage(); }
   });
   select.addEventListener('change', async () => { updateRate(select.value); try { await send('setRate', {rate: desiredRate}); } catch (error) { status(E.safeError(error), true); } });
   $('.toggle').addEventListener('click', () => { const hidden = !$('.body').hidden; $('.body').hidden = hidden; $('.toggle').textContent = hidden ? '+' : '−'; $('.toggle').setAttribute('aria-expanded', String(!hidden)); $('.toggle').setAttribute('aria-label', hidden ? '도구 펼치기' : '도구 접기'); });
+  $('#downloads').addEventListener('click', event => { event.preventDefault(); send('openDownloads').catch(error => status(E.safeError(error), true)); });
   $('#settings').addEventListener('click', event => { event.preventDefault(); send('openOptions').catch(error => status(E.safeError(error), true)); });
   async function poll() {
     updatePage();
     if (starting || !currentPage?.id) return;
     try {
       const state = await send('state');
-      if (!state.configured) { status('설정에서 로컬 도우미 연결 토큰을 입력해 주세요.', true); return; }
-      if (state.connection.error) { status(state.connection.error, true); return; }
       const batch = [...state.batches].reverse().find(batch => batch.origin === currentPage.origin && (currentPage.kind === 'folder' ? batch.folderId === currentPage.id : batch.items.some(item => item.id === currentPage.id)));
-      if (!batch) { status('저장 위치는 설정에서 변경할 수 있습니다.'); return; }
+      if (!batch) { status('다운로드 중에는 강의 탭과 다운로드 작업 탭을 열어 두세요.'); return; }
       if (batch.blockedError) { status(batch.blockedError, true); return; }
-      const done = batch.items.filter(item => item.status === 'completed').length, failed = batch.items.filter(item => item.status === 'failed').length, cancelled = batch.items.filter(item => item.status === 'cancelled').length;
-      status(`완료 ${done}/${batch.items.length}${failed ? ` · 실패 ${failed}` : ''}${cancelled ? ` · 취소 ${cancelled}` : ''} · 자세한 내용은 확장 아이콘에서 확인하세요.`, failed > 0);
+      const done = batch.items.filter(item => item.status === 'completed').length, handedOff = batch.items.filter(item => item.status === 'handedOff').length, failed = batch.items.filter(item => item.status === 'failed').length, cancelled = batch.items.filter(item => item.status === 'cancelled').length, interrupted = batch.items.filter(item => item.status === 'interrupted').length;
+      status(`저장 완료 ${done}/${batch.items.length}${handedOff ? ` · 브라우저에 전달 ${handedOff}` : ''}${failed ? ` · 실패 ${failed}` : ''}${cancelled ? ` · 취소 ${cancelled}` : ''}${interrupted ? ` · 중단 ${interrupted}` : ''} · 브라우저 전달 후에는 다운로드 목록에서 저장 결과를 확인하세요.`, failed > 0 || interrupted > 0);
     } catch (error) { status(E.safeError(error), true); }
   }
   window.addEventListener('hashchange', updatePage);

@@ -7,6 +7,11 @@ team_id="${1:-}"
 derived_data="$(mktemp -d "${TMPDIR:-/tmp}/panopto-safari-build.XXXXXX")"
 trap 'rm -rf -- "$derived_data"' EXIT
 
+# The Safari package removes browser APIs that Safari does not support.
+# Always regenerate it so the app includes the current extension source.
+node "$project_root/scripts/package.mjs"
+extension_version="$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).version)' "$project_root/dist/safari/extension/manifest.json")"
+
 if ! xcrun --find safari-web-extension-packager >/dev/null 2>&1; then
   packager=safari-web-extension-converter
 else
@@ -14,7 +19,7 @@ else
 fi
 
 mkdir -p "$build_root"
-xcrun "$packager" "$project_root/extension" \
+xcrun "$packager" "$project_root/dist/safari/extension" \
   --project-location "$build_root/project" \
   --app-name "$app_name" \
   --bundle-identifier "org.panoptodownloader.Panopto-Downloader" \
@@ -35,6 +40,7 @@ if [ -n "$team_id" ]; then
 fi
 xcodebuild -project "$project_file" -scheme "$app_name" \
   -configuration Debug -derivedDataPath "$derived_data" \
+  "MARKETING_VERSION=$extension_version" "CURRENT_PROJECT_VERSION=$extension_version" \
   "${signing[@]}" build
 
 mkdir -p "$project_root/dist/safari"

@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Panopto 다운로드 작업</title>
+<link rel="stylesheet" href="downloads.css"></head>
+<body><header><h1>Panopto 다운로드 작업</h1><button id="settings" type="button">저장 설정</button></header>
+<p class="notice">다운로드 중에는 이 작업 탭과 로그인한 Panopto 강의 탭을 열어 두세요. 이 탭을 닫거나 브라우저를 종료하면 진행 중인 작업이 중단되며 재시도 시 처음부터 다운로드합니다.</p>
+<p id="location" class="muted"></p><p id="status" role="status" aria-live="polite"></p><main id="batches"></main>
+<section class="notice"><p>Safari 다운로드 목록에서 모든 파일의 저장 완료를 확인한 뒤 임시 파일을 정리하세요. 정리하면 아직 저장 중인 다운로드가 중단될 수 있습니다.</p><label><input id="cleanup-confirm" type="checkbox"> Safari 다운로드 목록에서 완료를 확인했습니다.</label><p><button id="cleanup" type="button" disabled>임시 파일 정리</button></p></section>
+<script src="common.js"></script><script src="media.js"></script><script src="queue.js"></script><script src="downloads.js"></script></body></html>

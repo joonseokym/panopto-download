@@ -1,4 +1,4 @@
-import {readFile, readdir, mkdir, copyFile, rm} from 'node:fs/promises';
+import {readFile, writeFile, readdir, mkdir, copyFile, rm} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
@@ -26,6 +26,13 @@ for (const browser of ['chrome', 'safari']) {
   const unpacked = path.join(destination, 'extension');
   await rm(unpacked, {recursive: true, force: true});
   await copyDirectory(source, unpacked);
+  // Safari does not implement the WebExtensions downloads API. Its package
+  // uses the browser save flow provided by downloads.html instead.
+  const packagedManifest = structuredClone(manifest);
+  if (browser === 'safari') {
+    packagedManifest.permissions = (packagedManifest.permissions || []).filter(permission => permission !== 'downloads');
+  }
+  await writeFile(path.join(unpacked, 'manifest.json'), `${JSON.stringify(packagedManifest, null, 2)}\n`);
   const archive = path.join(destination, `panopto-downloader-${manifest.version}.zip`);
   await rm(archive, {force: true});
   if (process.platform === 'darwin') execFileSync('/usr/bin/ditto', ['-c', '-k', unpacked, archive]);

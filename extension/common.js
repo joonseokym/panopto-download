@@ -1,9 +1,8 @@
 (function (root) {
   'use strict';
-  const HELPER = 'http://127.0.0.1:8765';
   const GUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
   const RATES = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4];
-  const TERMINAL = new Set(['completed', 'failed', 'cancelled']);
+  const TERMINAL = new Set(['completed', 'handedOff', 'failed', 'cancelled', 'interrupted']);
   const api = root.browser || root.chrome;
   function call(area, method, ...args) {
     const namespace = area === 'storage' ? api?.storage?.local : api?.[area];
@@ -105,10 +104,10 @@
     if ('webkitPreservesPitch' in media) media.webkitPreservesPitch = true;
   }
   function safeError(error) {
-    // Panopto fetch failures and helper errors must never expose signed stream URLs.
+    // Fetch failures must never expose signed stream URLs.
     return String(error?.message || error || '요청에 실패했습니다.').replace(/https?:\/\/[^\s<>"']+/gi, '[주소 숨김]').slice(0, 700);
   }
-  const exported = {HELPER, GUID, RATES, TERMINAL, api, call, guid, pageInfo, streamUrl, deliveryPayload, sessionQuery, enumerateFolder, rate, applyRate, safeError};
+  const exported = {GUID, RATES, TERMINAL, api, call, guid, pageInfo, streamUrl, deliveryPayload, sessionQuery, enumerateFolder, rate, applyRate, safeError};
   root.PanoptoExt = exported;
   if (typeof module !== 'undefined' && module.exports) module.exports = exported;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

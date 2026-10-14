@@ -2,7 +2,7 @@
   'use strict';
   const E = globalThis.PanoptoExt, $ = id => document.getElementById(id);
   let tab, page, starting = false, polling = false;
-  const labels = {pending: '대기', submitting: '준비 중', reconciling: '접수 확인 중', queued: '대기', downloading: '다운로드 중', processing: '변환 중', cancelling: '취소 중', completed: '완료', failed: '실패', cancelled: '취소'};
+  const labels = {pending: '대기', preparing: '준비 중', downloading: '다운로드 중', saving: '저장 중', cancelling: '취소 중', completed: '저장 완료', handedOff: '브라우저에 전달', failed: '실패', cancelled: '취소', interrupted: '중단'};
   function status(text, error = false) { $('status').textContent = text; $('status').className = `status${error ? ' error' : ''}`; }
   async function send(action, data = {}) {
     const response = await E.call('runtime', 'sendMessage', {action, tabId: tab?.id, ...data});
@@ -17,15 +17,15 @@
     for (const batch of batches) {
       const section = element('section', 'batch'), header = element('div', 'batchhead');
       header.appendChild(element('strong', '', batch.title));
-      const done = batch.items.filter(item => item.status === 'completed').length, failed = batch.items.filter(item => item.status === 'failed').length, cancelled = batch.items.filter(item => item.status === 'cancelled').length;
-      header.appendChild(element('div', 'counts', `완료 ${done}/${batch.items.length}${failed ? ` · 실패 ${failed}` : ''}${cancelled ? ` · 취소 ${cancelled}` : ''}`));
+      const done = batch.items.filter(item => item.status === 'completed').length, handedOff = batch.items.filter(item => item.status === 'handedOff').length, failed = batch.items.filter(item => item.status === 'failed').length, cancelled = batch.items.filter(item => item.status === 'cancelled').length, interrupted = batch.items.filter(item => item.status === 'interrupted').length;
+      header.appendChild(element('div', 'counts', `저장 완료 ${done}/${batch.items.length}${handedOff ? ` · 브라우저에 전달 ${handedOff}` : ''}${failed ? ` · 실패 ${failed}` : ''}${cancelled ? ` · 취소 ${cancelled}` : ''}${interrupted ? ` · 중단 ${interrupted}` : ''}`));
       if (batch.blockedError) header.appendChild(element('p', 'error', batch.blockedError));
       const tools = element('div', 'batchtools');
       if (batch.items.some(item => !E.TERMINAL.has(item.status))) {
         const cancel = element('button', '', '대기열 취소');
         cancel.addEventListener('click', async () => { cancel.disabled = true; try { await send('cancel', {batchId: batch.id}); await refresh(); } catch (error) { status(E.safeError(error), true); cancel.disabled = false; } }); tools.appendChild(cancel);
       }
-      if (batch.blockedError || failed || cancelled) {
+      if (batch.blockedError || failed || cancelled || interrupted) {
         const retry = element('button', '', '현재 탭에서 재시도'); retry.disabled = !page || page.origin !== batch.origin;
         retry.addEventListener('click', async () => { retry.disabled = true; try { await send('retry', {batchId: batch.id}); await refresh(); } catch (error) { status(E.safeError(error), true); retry.disabled = false; } }); tools.appendChild(retry);
       }
@@ -34,9 +34,9 @@
       for (const item of batch.items) {
         const row = element('div', 'item'), top = element('div', 'itemtop');
         top.appendChild(element('span', 'title', item.title));
-        const suffix = item.status === 'downloading' || item.status === 'processing' ? ` ${Math.round(item.progress || 0)}%` : '';
+        const suffix = item.status === 'downloading' || item.status === 'saving' ? ` ${Math.round(item.progress || 0)}%` : '';
         top.appendChild(element('span', `badge${item.status === 'completed' ? ' done' : item.status === 'failed' ? ' error' : ''}`, (labels[item.status] || item.status) + suffix)); row.appendChild(top);
-        if (!E.TERMINAL.has(item.status) && item.jobId) { const progress = element('progress'); progress.max = 100; progress.value = item.progress || 0; progress.setAttribute('aria-label', `${item.title} 다운로드 진행률`); row.appendChild(progress); }
+        if (!E.TERMINAL.has(item.status) && Number.isFinite(item.progress)) { const progress = element('progress'); progress.max = 100; progress.value = item.progress || 0; progress.setAttribute('aria-label', `${item.title} 다운로드 진행률`); row.appendChild(progress); }
         if (item.error) row.appendChild(element('p', 'error', item.error));
         section.appendChild(row);
       }
@@ -49,9 +49,7 @@
     try {
       const state = await send('state'); render(state);
       if (!starting) {
-        if (!state.configured) status('먼저 설정에서 로컬 도우미 연결 토큰을 입력해 주세요.', true);
-        else if (state.connection.error) status(state.connection.error, true);
-        else status(state.connection.outputDir ? `저장 위치: ${state.connection.outputDir}` : '강의 탭은 대기열 준비가 끝날 때까지 열어 두세요.');
+        status(state.connection?.outputDir ? `저장 위치: ${state.connection.outputDir}` : '다운로드 작업 탭과 강의 탭을 열어 두세요.');
       }
     } catch (error) { status(E.safeError(error), true); }
     finally { polling = false; }
@@ -63,8 +61,8 @@
     catch (error) { status(E.safeError(error), true); }
     finally { starting = false; $('video').disabled = page?.kind !== 'video'; $('folder').disabled = page?.kind !== 'folder' || !page.id; await refresh(); }
   }
-  $('dashboard').href = E.HELPER;
-  $('settings').addEventListener('click', event => { event.preventDefault(); E.call('runtime', 'openOptionsPage').catch(error => status(E.safeError(error), true)); });
+  $('downloads').addEventListener('click', event => { event.preventDefault(); send('openDownloads').catch(error => status(E.safeError(error), true)); });
+  $('settings').addEventListener('click', event => { event.preventDefault(); send('openOptions').catch(error => status(E.safeError(error), true)); });
   for (const value of E.RATES) { const option = element('option', '', `${value}배`); option.value = value; $('rate').appendChild(option); }
   try {
     [tab] = await E.call('tabs', 'query', {active: true, currentWindow: true}); page = E.pageInfo(tab?.url);

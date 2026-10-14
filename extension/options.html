@@ -1,8 +1,10 @@
 <!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Panopto 다운로드 설정</title><link rel="stylesheet" href="ui.css"></head><body class="options"><main>
-<header><span class="brand" aria-hidden="true">P</span><div><h1>연결 · 저장 위치 설정</h1><p>Panopto 다운로드 확장</p></div></header>
-<p class="note">동영상 저장에는 로컬 도우미가 필요합니다. <strong>start.command</strong>를 실행한 다음, 도우미 화면의 연결 토큰을 아래에 붙여 넣으세요.</p>
-<form id="form"><div class="field"><label for="token">로컬 도우미 연결 토큰</label><div class="tokenrow"><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="도우미 화면에서 토큰 복사" required><button id="reveal" type="button">보기</button></div><p class="hint">토큰은 이 확장 기능의 로컬 저장소에만 보관됩니다.</p></div>
-<div class="field"><label for="output">다운로드 위치</label><div class="pathrow"><input id="output" type="text" value="~/Downloads" spellcheck="false" placeholder="~/Downloads"><button id="default" type="button">기본값</button></div><p class="hint">Mac의 폴더 경로를 입력하세요. 예: ~/Downloads 또는 /Volumes/External/Lectures<br>기본값은 사용자의 Downloads 폴더입니다. 폴더가 없으면 도우미가 만듭니다. 변경한 위치는 아직 도우미에 제출하지 않은 대기 영상부터 적용됩니다. 이미 제출한 작업은 원래 위치에 저장됩니다.</p></div>
-<div class="actions"><button type="submit" class="primary">저장 · 연결</button><button id="test" type="button">연결 확인</button></div></form>
-<p id="status" class="status" role="status" aria-live="polite"></p><nav class="links"><a id="dashboard" target="_blank" rel="noopener">로컬 도우미 열기 ↗</a><span>127.0.0.1:8765</span></nav>
-</main><script src="common.js"></script><script src="options.js"></script></body></html>
+<header><span class="brand" aria-hidden="true">P</span><div><h1>저장 위치 설정</h1><p>Panopto 다운로드 확장 · 브라우저에서 바로 저장</p></div></header>
+<p class="note">다운로드가 진행되는 동안 <strong>Panopto 강의 탭과 다운로드 작업 탭을 모두 열어 두세요.</strong> 브라우저를 종료하거나 작업 탭을 닫으면 진행 중인 영상이 중단될 수 있습니다.</p>
+<form id="form"><div class="field"><label for="mode">저장 방식</label><select id="mode"><option value="browser">브라우저 다운로드 폴더</option id="directoryOption" value="directory" hidden>직접 선택한 폴더</option></select><p id="browserHint" class="hint">기본 저장 위치는 브라우저에 설정된 다운로드 폴더입니다. 일반적으로 Downloads 폴더이며, 브라우저에서 위치를 바꿨다면 해당 설정을 따릅니다.</p></div>
+<div id="directoryField" class="field" hidden><label>직접 선택한 폴더</label><div class="pathrow"><output id="directoryName">아직 선택하지 않았습니다.</output><button id="chooseFolder" type="button">폴더 선택</button></div><p class="hint">선택창에서 폴더 쓰기 권한을 허용해 주세요. 권한이 만료되면 다운로드 작업 탭에서 다시 요청합니다. 이 저장 방식은 지원되는 Chrome 계열 브라우저에서 사용할 수 있습니다.</p></div>
+<div id="chromeSettings" hidden><div class="field"><label for="subfolder">다운로드 폴더 안의 하위 폴더</label><input id="subfolder" type="text" placeholder="예: Panopto/경제학개론" spellcheck="false"><p class="hint">비워 두면 브라우저의 다운로드 폴더에 저장합니다. 절대 경로와 상위 폴더(..)는 사용할 수 없습니다. 직접 선택한 폴더에는 적용되지 않습니다.</p></div><label class="checkbox"><input id="askEveryTime" type="checkbox">영상마다 저장 대화상자 표시</label></div>
+<p id="safariHint" class="note" hidden>Safari의 저장 위치는 <strong>Safari → 설정 → 일반 → 파일 다운로드 위치</strong>에서 변경하세요. Safari에서는 다운로드 요청을 브라우저에 전달한 뒤, 다운로드 목록에서 실제 저장 결과를 확인해야 합니다.</p>
+<div class="actions"><button type="submit" class="primary">설정 저장</button><button id="default" type="button">기본값 복원</button></div></form>
+<p id="status" class="status" role="status" aria-live="polite"></p><nav class="links"><a id="downloads" href="downloads.html">다운로드 현황 ↗</a><span>브라우저에서 직접 동작합니다.</span></nav>
+</main><script src="common.js"></script><script src="media.js"></script><script src="options.js"></script></body></html>
